@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, TextInput, Button } from 'react-native'
+import { View, Text, FlatList, Pressable, TextInput, Button, NativeSyntheticEvent, TextInputKeyPressEventData, TextInputSubmitEditingEventData } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import RecipeGrid from '../../components/RecipeGrid'
@@ -12,7 +12,8 @@ import { useRecoilState } from 'recoil'
 import { displayAtom } from '../../data/display'
 
 type Props = {
-    navigation: any
+    navigation: any;
+    route: any;
 }
 interface Categorys {
     id: number;
@@ -21,10 +22,11 @@ interface Categorys {
     strCategoryThumb: string;
     strCategoryDescription: string;
 }
-const Category = ({ navigation }: Props) => {
+const Category = ({ navigation, route }: Props) => {
     const [lists, setLists] = useState<Categorys[]>([]);
     const [completed, setCompleted] = useState(false);
-    const [failed, setFailed] = useState(false)
+    const [failed, setFailed] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const [listType, setListType] = useRecoilState(displayAtom);
     const fetchData = async () => {
         setCompleted(false)
@@ -44,7 +46,10 @@ const Category = ({ navigation }: Props) => {
     };
     useFocusEffect(
         React.useCallback(() => {
-
+            // const title = route.params.name;
+            navigation.setOptions({
+                title: "Category Lists"
+            })
             fetchData();
             return () => { };
 
@@ -57,10 +62,14 @@ const Category = ({ navigation }: Props) => {
 
         navigation.navigate('CategoryLists', { name: lists[index].strCategory })
     }
+
+    const handleKeyPress = (e: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+        navigation.navigate('Search', { name: searchTerm })
+    }
     return (
         <View style={tw`relative w-full h-full`}>
             <View style={tw.style(`items-center my-3`)}>
-                <TextInput keyboardType='web-search' style={tw.style('py-2 px-3 border border-purple-300 w-11/12 rounded-full')} />
+                <TextInput onChange={e => setSearchTerm(e.nativeEvent.text)} value={searchTerm} keyboardType='web-search' enterKeyHint='search' onSubmitEditing={e => handleKeyPress(e)} style={tw.style('py-2 px-3 border border-purple-300 w-11/12 rounded-full')} />
             </View>
             <View style={tw.style(`flex-row items-center justify-between h-10 px-4 bg-white`)}>
                 <View>
@@ -88,12 +97,11 @@ const Category = ({ navigation }: Props) => {
                 return item.id
             }} />}
             {!completed && <Loader />}
-            {completed && failed && <View style={tw`absolute items-center justify-center w-full h-full`}>
+            {/* {completed && failed && <View style={tw`absolute items-center justify-center w-full h-full`}>
                 <View style={tw`w-2/5`}>
                     <Button onPress={fetchData} color={tw.color('purple-500')} title='Refresh' />
                 </View>
-
-            </View>}
+            </View>} */}
         </View>
     )
 }
